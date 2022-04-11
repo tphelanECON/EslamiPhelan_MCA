@@ -1,2 +1,2 @@
 # EslamiPhelan_MCA
-Code for JEDC article
+Replications materials
