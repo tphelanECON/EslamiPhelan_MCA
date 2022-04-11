@@ -4,19 +4,14 @@ Durable consumption problem in three dimensions.
 
 import numpy as np
 import pandas as pd
-import time
-import scipy
+import time, scipy
 import scipy.optimize
-import scipy.sparse as sp
-from scipy.sparse import diags
-from scipy.sparse import linalg
 import matplotlib.pyplot as plt
 import classes
 
-#(150,30,10),(200,40,10)
 #Want K/N[0] to be constant as we vary N.
 data = []
-N_set = [(50,10,10),(100,20,10)]
+N_set = [(50,10,10), (100,20,10), (150,30,10), (200,40,10)]
 K_set = [2,4,6,8]
 k_set = [10,50,100,150]
 
@@ -46,7 +41,6 @@ for n in N_set:
         print("Max percentage difference with PFI:", np.max(100*np.abs((V_PFI[n] - V_MPFI[n])/V_PFI[n])))
     data.append(d)
 
-"""
 destin = '../../figures/durable_table.tex'
 
 df = pd.DataFrame(data=data,index=N_set)
@@ -60,4 +54,3 @@ df.index.names = ['Grid size']
 
 with open(destin,'w') as tf:
     tf.write(df.to_latex(escape=False,column_format='ccccccc'))
-"""
