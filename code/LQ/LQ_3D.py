@@ -4,22 +4,14 @@
 
 import pandas as pd
 import numpy as np
-import scipy
-import scipy.optimize
-import scipy.sparse as sp
-from scipy.sparse import diags
-from scipy.sparse import linalg
+import scipy, timeit, time
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 import LQ_classes
-import timeit
-import time
 
-#,(30,30,30),(40,40,40)
 data, data_acc, data_acc2 = [], [], []
-N_set = [(10,10,10),(20,20,20)]
-#k_set = [10,50,100,150]
-k_set = []
+N_set = [(10,10,10), (20,20,20), (30,30,30), (40,40,40)]
+k_set = [10,50,100,150]
 
 rho, Q, A = 0.1, 1*np.eye(3), 0.01*np.eye(3)
 B, sigma = np.array([.025,.025,.025]).reshape(3,1), 0.4*np.eye(3)
@@ -37,12 +29,12 @@ for n in N_set:
     d_acc['PFI'] = np.mean(100*np.abs((X.CF - V_PFI)/X.CF))
     d_acc2['PFI'] = np.amax(100*np.abs((X.CF - V_PFI)/X.CF))
     tic = time.time()
-    #V_VFI = X.solve_MPFI(0)
+    V_VFI = X.solve_MPFI(0)
     toc = time.time()
-    #d['VFI'] = toc-tic
+    d['VFI'] = toc-tic
     print("VFI for grid size", n, "completed in", toc - tic, "seconds")
-    #d_acc['VFI'] = np.mean(100*np.abs((X.CF - V_VFI)/X.CF))
-    #d_acc2['VFI'] = np.amax(100*np.abs((X.CF - V_VFI)/X.CF))
+    d_acc['VFI'] = np.mean(100*np.abs((X.CF - V_VFI)/X.CF))
+    d_acc2['VFI'] = np.amax(100*np.abs((X.CF - V_VFI)/X.CF))
     for k in k_set:
         tic = time.time()
         V_MPFI = X.solve_MPFI(k)
@@ -57,7 +49,6 @@ for n in N_set:
     data_acc.append(d_acc)
     data_acc2.append(d_acc2)
 
-"""
 destin = '../../figures/LQ_3D_SD_table.tex'
 
 df = pd.DataFrame(data=data,index=N_set)
@@ -85,16 +76,15 @@ df.index.names = ['Grid size']
 
 with open(destin,'w') as tf:
     tf.write(df.to_latex(escape=False,column_format='ccccccc'))
-"""
+
 
 """
 Now generalized case
 """
 
 data, data_acc, data_acc2 = [], [], []
-N_set = [(10,10,10),(20,20,20)] #,(30,30,30), (40,40,40)
-#k_set = [0,10,50,100,150]
-k_set = []
+N_set = [(10,10,10),(20,20,20),(30,30,30), (40,40,40)]
+k_set = [0,10,50,100,150]
 
 for n in N_set:
     d, d_acc, d_acc2 = {}, {}, {}

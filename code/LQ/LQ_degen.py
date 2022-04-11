@@ -7,18 +7,10 @@ Perhaps create once more with 'ij' indexing to avoid confusion.
 
 import pandas as pd
 import numpy as np
-import scipy
-import scipy.optimize
-import scipy.sparse as sp
-from scipy.sparse import diags
-from scipy.sparse import linalg
+import scipy, timeit, time
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
-import itertools
-import LQ_classes
-import LQ_degen_classes
-import timeit
-import time
+import LQ_classes, LQ_degen_classes
 
 data_3, data_5, data_BOZ = [], [], []
 N_set = [(50,50), (100,100),(150,150),(200,200)]
