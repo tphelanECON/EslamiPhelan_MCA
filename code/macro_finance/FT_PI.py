@@ -4,15 +4,9 @@ Comparison of false transient and policy iteration algorithms.
 solve_FT takes argument check = 0 or 1:
     * check = 1: solve_FT begins at values found in solve_PFI.
     * check = 0: begins at logarithmic quantities.
-
 """
 
 import numpy as np
-import scipy.sparse as sp
-import scipy.optimize as scopt
-from scipy.sparse import linalg
-from scipy.sparse import diags
-import scipy.sparse.linalg as splinalg
 from scipy import interpolate
 import time, math, itertools
 import matplotlib.pyplot as plt
@@ -63,29 +57,4 @@ ax.set_xlabel('Number of iterations')
 ax.legend(loc = 'upper right')
 destin = '../../figures/diff_MF2.eps'
 plt.savefig(destin, format='eps', dpi=1000)
-plt.show()
-
-V_pair = (X[i].solveV_PFI(0,agg_PFI[i]), X[i].solveV_PFI(1,agg_PFI[i]))
-r, mux, sigx = X[i].agg_update(V_pair)
-V_pair2 = (X[i].solveV_PFI(0,(r, mux, sigx)), X[i].solveV_PFI(1,(r, mux, sigx)))
-r2, mux2, sigx2 = X[i].agg_update(V_pair2)
-V_pair3 = (X[i].solveV_PFI(0,(r2, mux2, sigx2)), X[i].solveV_PFI(1,(r2, mux2, sigx2)))
-r3, mux3, sigx3 = X[i].agg_update(V_pair3)
-
-DIFF = r - agg_PFI[i][0], X[i].XX*(mux - agg_PFI[i][1]), X[i].XX*(sigx - agg_PFI[i][2])
-DIFF2 = r2 - agg_PFI[i][0], X[i].XX*(mux2 - agg_PFI[i][1]), X[i].XX*(sigx2 - agg_PFI[i][2])
-DIFF3 = r3 - agg_PFI[i][0], X[i].XX*(mux3 - agg_PFI[i][1]), X[i].XX*(sigx3 - agg_PFI[i][2])
-
-eps = np.amax(np.abs(DIFF[0][:,1:-1])) + np.amax(np.abs(DIFF[1][:,1:-1])) + np.amax(np.abs(DIFF[2][:,1:-1]))
-eps2 = np.amax(np.abs(DIFF2[0][:,1:-1])) + np.amax(np.abs(DIFF2[1][:,1:-1])) + np.amax(np.abs(DIFF2[2][:,1:-1]))
-eps3 = np.amax(np.abs(DIFF3[0][:,1:-1])) + np.amax(np.abs(DIFF3[1][:,1:-1])) + np.amax(np.abs(DIFF3[2][:,1:-1]))
-print(eps,eps2,eps3)
-
-fig = plt.figure()
-ax = plt.axes(projection='3d')
-ax.plot_surface(X[i].XX[:,1:-1], X[i].SIGSIG[:,1:-1], mux[:,1:-1] - mux3[:,1:-1], rstride=1, cstride=1, cmap='viridis', edgecolor='none')
-ax.view_init(30, 45)
-ax.set_title('')
-ax.set_xlabel('$x$')
-ax.set_ylabel('$\sigma$')
 plt.show()

@@ -4,9 +4,6 @@ Various partial checks on the algorithm:
 Check 1: recovery of log utility values for gamma near 1.
 Check 2: recovery of known boundary values in absence of mean reversion.
 Check 3: check "constant dt" and "variable dt" algorithms agree (approximately)
-Check 4: check false transient approach remains constant if one begins at the initial
-values given by the policy iterations algorithms.
-
 """
 
 import numpy as np
@@ -17,11 +14,9 @@ from scipy.sparse import linalg
 from scipy.sparse import diags
 import scipy.sparse.linalg as splinalg
 from scipy import interpolate
-import time
-import math
+import time, itertools, math
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
-import itertools
 import MF_classes
 
 """
@@ -31,17 +26,18 @@ Check 1: recovery of log utility values for gamma near 1.
 print("Performing first check")
 
 rho, Pi, rlow = [0.1,0.075], 0.05, 0.001
-N, bnd = (120,60), [[0,1], [0.1,0.4]]
+N, bnd = (120,60), [[0,1], [0.1,0.3]]
 mbar, max_iter_eq = 4, 1000
-theta, sigsigbar= 0.1, 0.2
+theta, sigsigbar= 0.5, 0.15
 dt, Delta_y, tol = 10**-8, 10**-4, 10**-6
-data, gamma_set = [], [0.9,0.99,0.999,0.9999]
+data, gamma_set = [], [0.9,0.99,0.995]
 for gamma in gamma_set:
+    print(gamma)
     d = {}
     X = MF_classes.MF_corr(rho=rho,gamma=gamma,Pi=Pi,rlow=rlow, sigsigbar=sigsigbar,theta=theta, \
     N=N,X_bnd=bnd,tol=tol,Delta_y=Delta_y,max_iter_eq=max_iter_eq,dt=dt,mbar=mbar)
     tic = time.time()
-    r, mux, sigx = X.solve_PFI()
+    (r, mux, sigx), toctic = X.solve_PFI()
     toc = time.time()
     print("Time taken:", toc-tic)
     r_log, mux_log, sigx_log = X.log_quant()
@@ -64,16 +60,19 @@ with open(destin,'w') as tf:
 Check 2: recovery of known boundary values in absence of mean reversion.
 Use class constructor with independent noise, since high correlation
 algorithm breaks down when sigsigbar vanishes.
+
+In the following, the differences should be zero when x=0,1.
 """
 
 print("Performing second check")
 
-gamma, theta, sigsigbar = 1.5, 0.0, 0.0
+Pi = 0.1
+gamma, theta, sigsigbar = 2., 0.0, 0.0
 X = MF_classes.MF_ind(rho=rho,gamma=gamma,Pi=Pi,rlow=rlow, sigsigbar=sigsigbar,theta=theta, \
 N=N,X_bnd=bnd,tol=tol,Delta_y=Delta_y,max_iter_eq=max_iter_eq,dt=dt)
 
 tic = time.time()
-r, mux, sigx = X.solve_PFI()
+(r, mux, sigx), toctic = X.solve_PFI()
 toc = time.time()
 
 V_pair = (X.solveV_PFI(0,(r, mux, sigx)), X.solveV_PFI(1,(r, mux, sigx)))
@@ -81,7 +80,7 @@ V_pair_bnd = (X.V_bnd_lin(0), X.V_bnd_lin(1))
 
 fig = plt.figure()
 ax = plt.axes(projection='3d')
-ax.plot_surface(X.XX, X.SIGSIG, V_pair[1] - V_pair_bnd[1], rstride=1, cstride=1, cmap='viridis', edgecolor='none')
+ax.plot_surface(X.XX, X.SIGSIG, V_pair[1]**(1/(1-X.gamma)) - V_pair_bnd[1]**(1/(1-X.gamma)), rstride=1, cstride=1, cmap='viridis', edgecolor='none')
 ax.view_init(30, 45)
 ax.set_xlabel('Wealth share $x$', fontsize=13)
 ax.set_ylabel('Exogenous uncertainty $\sigma$', fontsize=13)
@@ -89,7 +88,7 @@ plt.show()
 
 fig = plt.figure()
 ax = plt.axes(projection='3d')
-ax.plot_surface(X.XX, X.SIGSIG, V_pair[0] - V_pair_bnd[0], rstride=1, cstride=1, cmap='viridis', edgecolor='none')
+ax.plot_surface(X.XX, X.SIGSIG, V_pair[0]**(1/(1-X.gamma)) - V_pair_bnd[0]**(1/(1-X.gamma)), rstride=1, cstride=1, cmap='viridis', edgecolor='none')
 ax.view_init(30, 45)
 ax.set_xlabel('Wealth share $x$', fontsize=13)
 ax.set_ylabel('Exogenous uncertainty $\sigma$', fontsize=13)
@@ -101,7 +100,6 @@ Check 3: check "constant dt" and "variable dt" algorithms agree (approximately)
 
 print("Performing third check")
 
-N, bnd = (160,80), [[0,1],[0.1,0.3]]
 pbar, mbar, max_iter_eq = 10**-6, 4, 1000
 theta, sigsigbar = 1.0,0.2
 X = MF_classes.MF_corr(rho=rho,gamma=gamma,Pi=Pi,rlow=rlow, sigsigbar=sigsigbar,theta=theta, \
@@ -111,9 +109,13 @@ Y = MF_classes.MF_corr_var_dt(rho=rho,gamma=gamma,Pi=Pi,rlow=rlow, sigsigbar=sig
 N=N,X_bnd=bnd,tol=tol,Delta_y=Delta_y,max_iter_eq=max_iter_eq,pbar=pbar,mbar=mbar)
 
 tic = time.time()
-r, mux, sigx = X.solve_PFI()
+(r, mux, sigx), toctic = X.solve_PFI()
 rY, muxY, sigxY = Y.solve_PFI()
 toc = time.time()
+
+"""
+Following should be small
+"""
 
 print("Average absolute differences in interest rates:", np.mean(np.abs(r-rY)))
 print("Average absolute differences in xmux:", np.mean(np.abs(X.XX*mux-Y.XX*muxY)))

@@ -4,8 +4,6 @@ Recall w = sigbar[0]/sigbar[1] = (Delta[1]/Delta[0])*(X[0]/X[1]).
 """
 
 import numpy as np
-import scipy.sparse as sp
-import scipy.sparse.linalg as splinalg
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 import time, math, itertools, timeit

@@ -59,8 +59,8 @@ class MF_ind(object):
     def H(self,type,pol,agg):
         (c, k), rho = pol, self.rho[type]
         ii, jj = np.meshgrid(range(self.N[0]+1),range(self.N[1]+1),indexing = 'ij')
-        p, z = self.p_func((ii,jj),type,pol,agg), np.exp((1-self.gamma)*self.Delta_y)
-        diag = 1 + p['up']*(z-1) + p['down']*(1/z-1) - p[(1,0)] - p[(-1,0)] - p[(0,1)] - p[(0,-1)]
+        p, e = self.p_func((ii,jj),type,pol,agg), np.exp((1-self.gamma)*self.Delta_y)
+        diag = 1 + p['up']*(e-1) + p['down']*(1/e-1) - p[(1,0)] - p[(-1,0)] - p[(0,1)] - p[(0,-1)]
         H = self.T_func(ii*(self.N[1]+1)+jj,ii*(self.N[1]+1)+jj,diag)
         for key in self.trans_keys:
             ii, jj = np.meshgrid(range(max(-key[0],0),self.N[0]+1-max(key[0],0)), \
@@ -86,20 +86,22 @@ class MF_ind(object):
         eps, eps2, i = 1, 1, 1
         if check_NaN==1:
             print("ERROR: NaNs in equilibrium quantities")
-        while i < 40 and eps2 > self.tol:
+        while i < 40 and eps > self.tol:
             V1 = self.Vupdate_PFI(type,(c,k),agg)
             (c1,k1) = self.polupdate(type,V1,agg)
             eps = np.mean(np.abs(V**(1/(1-self.gamma)) - V1**(1/(1-self.gamma))))
             eps2 = np.max(np.abs(c - c1)) + np.max(np.abs(k - k1))
-            if np.min(V1-V) < -10**(-4):
-                print("Failure of monotonicity at:", len(V[V1-V<-10**(-4)]), "points out of ", self.M)
-                print("Average magnitude of monotonicity failure:", np.mean((V1-V)[V1-V<-10**(-4)]))
+            if np.min(V1/(1-self.gamma)-V/(1-self.gamma)) < -10**(-4):
+                diff = V1/(1-self.gamma)-V/(1-self.gamma)
+                print("Failure of monotonicity at:", len(V[diff<-10**(-4)]), "points out of ", self.M)
+                print("Average magnitude of monotonicity failure:", np.mean(diff[diff<-10**(-4)]))
+            if np.min(V1) < 0:
+                print("ERROR: value function becomes negative")
             V, (c,k), i = V1, (c1,k1), i+1
-        if eps2 > self.tol:
-            print("Individual problem did not converge", "Difference:", eps2)
+        if eps > self.tol or np.isnan(V).any() or np.min(V1)<0:
+            print("Individual problem did not converge", "Difference:", eps)
         else:
-            pass
-            #print("Convergence of individual problem in", i, "iterations.", "Difference:", eps2)
+            print("Convergence of individual problem in", i, "iterations.", "Difference:", eps)
         return V
 
     def Vupdate(self,type,pol,V,M,agg):
@@ -220,12 +222,21 @@ class MF_ind(object):
         return self.V_bnd_eq(type,0)*(1-self.XX) + self.V_bnd_eq(type,1)*self.XX
 
 """
-Perfectly correlated noise (need to get references to pbar out)
+Perfectly correlated noise (fixed timestep, nonlocal transition probabilities adjust)
+
+Reminders:
+
+    SIGSIG is array for sigma variable (volatility of depreciation shocks).
+    sigbar is average sigma. sigsigbar is volatility of sigma.
+    self.sigsig is array of sigsigbar (but set to zero on boundaries).
+    mbar = size of largest non-local transition.
+    mux and sigx are literally \mu_x and \sigma_x, not x\mu_x and x\sigma_x.
+
 """
 
 class MF_corr(object):
-    def __init__(self,rho=[.2, .1],gamma=0.9995,Pi=0.065,rlow=0.0, sigsigbar=0.2,
-    theta=1, N=(200,50), X_bnd=[[0,1],[0.1,0.4]],mbar=4,tol=10**-6, dt=10**(-8),
+    def __init__(self, rho=[.2, .1], gamma=0.9995, Pi=0.065, rlow=0.0, sigsigbar=0.2,
+    theta=1, N=(200,50), X_bnd=[[0,1],[0.1,0.4]], mbar=4, tol=10**-6, dt=10**(-8),
     Delta_y=0.01, max_iter_eq=100, pol_maxiter = 20, relax = [0.0]):
         self.rho, self.gamma, self.Pi, self.rlow = rho, gamma, Pi, rlow
         self.theta, self.sigsigbar, self.X_bnd = theta, sigsigbar, X_bnd
@@ -242,6 +253,9 @@ class MF_corr(object):
         self.ii_, self.jj_ = np.meshgrid(range(self.N[0]+1),range(self.N[1]+1),indexing = 'ij')
         self.relax, self.pol_maxiter = relax, pol_maxiter
 
+    #following produces dictionary of probabilities, given type, individual policy
+    #functions, and aggregate quantities, at desired indices (points) ind.
+    #slight difference from IFP and LQ due to homogeneity observation.
     def p_func(self,ind,type,pol,agg):
         (c,k), (r, mux, sigx) = pol, agg
         (ii,jj), p_func = ind, {}
@@ -258,6 +272,7 @@ class MF_corr(object):
         p_func[(0,1)], p_func[(0,-1)] = pup_sig[ii,jj], pdown_sig[ii,jj]
         return p_func
 
+    #following is E[V(x',sigma')*np.exp((1-gamma)*('y-y))]
     def H(self,type,pol,agg):
         (c, k), rho = pol, self.rho[type]
         (m1,m2), pbar, z = self.NL(agg)
@@ -276,9 +291,13 @@ class MF_corr(object):
             H = H + self.T_func(ii*(self.N[1]+1)+jj,(ii+key[0])*(self.N[1]+1)+jj+key[1],self.p_func((ii,jj),type,pol,agg)[key])
         return H
 
+    #following creates \overline{T} operator. Explicit expressions are in appendix.
     def T(self,type,pol,agg):
         return (1/self.dt)*(np.exp(-self.rho[type]*self.dt)*self.H(type,pol,agg) - sp.eye(self.M))/(1-self.gamma)
 
+    #following creates non-local part of transition probabilities
+    #return the integer transitions, transition probabilities, and weights between
+    #the two pairs.
     def NL(self,agg):
         m1 = (np.zeros((self.N[0]+1,self.N[1]+1)), np.zeros((self.N[0]+1,self.N[1]+1)))
         m2 = (np.zeros((self.N[0]+1,self.N[1]+1)), np.zeros((self.N[0]+1,self.N[1]+1)))
@@ -308,6 +327,8 @@ class MF_corr(object):
         Dt_bar[0,0], Dt_bar[-1,0], Dt_bar[0,-1], Dt_bar[-1,-1] = 1, 1, 1, 1
         return (m1,m2), self.dt/Dt_bar, z
 
+    #optimal policy for each type, given continuation values, typo and law of motion
+    #of aggregate state. V is single array not pairs of arrays. agg = (r, mux, sigx)
     def polupdate(self,type,V,agg):
         E1, E2, Ec = self.con_E()
         VEFx, VEFsig = np.zeros((self.N[0]+1,self.N[1]+1)), np.zeros((self.N[0]+1,self.N[1]+1))
@@ -323,13 +344,16 @@ class MF_corr(object):
         d = np.exp(self.rho[type]*self.dt/self.gamma)*Ec
         return (self.rho[type]/V)**(1/self.gamma)*d, (type==0)*k + (type==1)*0
 
+    #update value function using PFI, given POLICY function
     def Vupdate_PFI(self,type,pol,agg):
         b = self.rho[type]*pol[0]**(1-self.gamma)/(1-self.gamma)
         return sp.linalg.spsolve(-self.T(type,pol,agg), b.reshape((self.M,1))).reshape((self.N[0]+1,self.N[1]+1))
 
+    #update value function using PFI, given PREVIOUS VALUE function
     def updateV_PFI(self,type,V,agg):
         return self.Vupdate_PFI(type,self.polupdate(type,V,agg),agg)
 
+    #solve individual problem using PFI given aggregate quantities
     def solveV_PFI(self,type,agg):
         c,k = self.rho[type]/10 + 0*agg[0], 0*agg[0]
         V = self.Vupdate_PFI(type,(c,k),agg)
@@ -339,7 +363,6 @@ class MF_corr(object):
         if check_NaN==1:
             print("ERROR: NaNs in equilibrium quantities")
         while i < 40 and eps > self.tol:
-            #print("Iteration:", i)
             p = self.p_func((self.ii_,self.jj_),type,(c,k),agg)
             probs = sum(p.values()) + 2*self.NL(agg)[1]
             if np.max(probs) > 1:
@@ -349,16 +372,16 @@ class MF_corr(object):
             eps = np.max(np.abs(V**(1/(1-self.gamma)) - V1**(1/(1-self.gamma))))
             eps2 = np.max(np.abs(c - c1)) + np.max(np.abs(k - k1))
             if np.min(V1/(1-self.gamma)-V/(1-self.gamma)) < -10**(-4):
-                print("Failure of monotonicity at:", len(V[V1/(1-self.gamma)-V/(1-self.gamma)<-10**(-4)]), "points out of ", self.M)
-                print("Average magnitude of monotonicity failure:", np.mean((V1-V)[V1/(1-self.gamma)-V/(1-self.gamma)<-10**(-4)]))
+                diff = V1/(1-self.gamma)-V/(1-self.gamma)
+                print("Failure of monotonicity at:", len(V[diff<-10**(-4)]), "points out of ", self.M)
+                print("Average magnitude of monotonicity failure:", np.mean(diff[diff<-10**(-4)]))
             if np.min(V1) < 0:
                 print("ERROR: value function becomes negative")
             V, (c,k), i = V1, (c1,k1), i+1
         if eps > self.tol or np.isnan(V).any() or np.min(V1)<0:
             print("Individual problem did not converge", "Difference:", eps)
         else:
-            pass
-            #print("Convergence of individual problem in", i, "iterations")
+            print("Convergence of individual problem in", i, "iterations.", "Difference:", eps)
         return V
 
     def Vupdate(self,type,pol,V,M,agg):
@@ -395,7 +418,7 @@ class MF_corr(object):
         mux = (c[1] - c[0] + (self.Pi-r)*k - self.SIGSIG**2*k**2*self.XX)*(1-self.XX)
         return r, mux, sigx
 
-    #think slowly. Want to start with j=0, and relax[j]. Then if
+    #solve for the competitive equilibrium using policy iteration approach
     def solve_PFI(self):
         print("Solving with policy iteration approach")
         tic, j, i = time.time(), 0, 0
@@ -425,6 +448,7 @@ class MF_corr(object):
         toc = time.time()
         return (r, mux, sigx), toc-tic
 
+    #solve for the competitive equilibrium using the false transient approach
     def solve_FT(self,check):
         print("Solving with false transient approach")
         agg_PFI = self.solve_PFI()[0]
@@ -511,7 +535,7 @@ class MF_corr(object):
         return self.V_bnd_eq(type,0)*(1-self.XX) + self.V_bnd_eq(type,1)*self.XX
 
 """
-Correlated noise with varying timestep
+Correlated noise with state-dependent timestep
 """
 
 class MF_corr_var_dt(object):

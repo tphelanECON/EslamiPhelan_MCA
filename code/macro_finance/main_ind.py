@@ -6,11 +6,6 @@ Creates figures but does not save them as they are not used in the paper.
 
 import numpy as np
 import pandas as pd
-import scipy.sparse as sp
-import scipy.optimize as scopt
-from scipy.sparse import linalg
-from scipy.sparse import diags
-import scipy.sparse.linalg as splinalg
 from scipy import interpolate
 import time, math, itertools
 import matplotlib.pyplot as plt
@@ -26,10 +21,10 @@ dt=10**(-8)
 rlow = 0.001
 """
 
-gamma, rho, Pi, rlow = 2., [0.08,0.06], 0.1, 0.0
-N, bnd = (160,80), [[0,1], [0.1,0.3]]
+gamma, rho, Pi, rlow = 1.5, [0.1,0.075], 0.1, 0.0
+N, bnd = (400,100), [[0,1], [0.1,0.3]]
 mbar, max_iter_eq = 4, 1000
-theta, sigsigbar = 0.5, 0.5
+theta, sigsigbar = 0.5, 0.25
 dt, Delta_y, tol = 5*10**-8, 2.0*10**-4, 10**-6
 
 X = MF_classes.MF_ind(rho=rho,gamma=gamma,Pi=Pi,rlow=rlow, sigsigbar=sigsigbar,theta=theta, \
