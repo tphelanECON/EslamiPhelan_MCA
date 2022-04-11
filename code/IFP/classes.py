@@ -1,21 +1,18 @@
 """
 Five classes: IFP_2D, GIFP_2D, IFP_3D, GIFP_3D, DuraCons.
 
-IFP_2D is 2-dimensional IFP; GIFP_2D is generalized analogue.
-IFP_3D is 3-dimensional IFP; GIFP_3D is generalized analogue.
-DuraCons is the durable good example.
+IFP_2D is 2-dimensional IFP, GIFP_2D is generalized analogue.
+IFP_3D is 3-dimensional IFP, GIFP_3D is generalized analogue.
+DuraCons is durable consumption problem.
 
-DuraCons is durable consumption problem. All of following use indexing='ij'.
+All of following use indexing='ij'.
 If xx, yy = np.meshgrid(xgrid, ygrid) then xx is constant as one changes columns
 and varies as one changes rows.
 
 Since numpy reshapes by reading across rows then columns
-(i.e. np.array([[1,2],[3,4]]).reshape(-1) = np.array([1,2,3,4])), ot follows
-that row number i*(self.N[1]-1) + j corresponds to the transition probabilities
-for the (i,j point).
-
-And similarly for higher dimensions.
-
+(i.e. np.array([[1,2],[3,4]]).reshape(-1) = np.array([1,2,3,4])), row number
+i*(self.N[1]-1) + j corresponds to the transition probabilities
+for the (i,j) point, and similarly for higher dimensions.
 """
 
 import numpy as np
@@ -250,8 +247,7 @@ class GIFP_2D(object):
         range(max(-m[1],0), self.N[1] - 1 - max(m[1],0)), indexing='ij')
 
 """
-Three-dimensional income-fluctuation problem.
-States: assets, log income 1, and log income 2.
+Three-dimensional income-fluctuation problem. States: assets, log income 1, and log income 2.
 """
 
 class IFP_3D(object):
@@ -507,9 +503,7 @@ class GIFP_3D(object):
 """
 Durable consumption IFP. States: wealth, income and durable good.
 Asset grid NOT determined by bnd and N[0]. Exogenous K indicates no. changes in
-asset grid with increase in durable good.
-
-Must start with function s.t. B(V) \geq 0. Want K/N[0] to be constant as we vary N.
+asset grid with increase in durable good. Must start with V s.t. B(V) geq 0.
 """
 
 class DuraCons(object):
@@ -566,7 +560,7 @@ class DuraCons(object):
         for key in self.trans_keys:
             ii, jj, kk = self.mesh(key)
             row = ii*(self.N[1]-1)*(self.N[2]-1) + jj*(self.N[2]-1) + kk
-            column = (ii+key[0])*(self.N[1]-1)*(self.N[2]-1) + (jj+key[1])*(self.N[2]-1) + kk + key[2]
+            column = (ii+key[0])*(self.N[1]-1)*(self.N[2]-1) + (jj+key[1])*(self.N[2]-1) + kk+key[2]
             H = H + self.T_func(row, column, self.norm_func((ii,jj,kk),pol)[key])
         return H
 
@@ -574,6 +568,7 @@ class DuraCons(object):
         b = self.u(pol)/(self.rho+sum(self.tran_func(self.mesh([0,0,0]),pol).values()))
         return sp.linalg.spsolve(-self.T_tran(pol), b.reshape((self.M,))).reshape((self.N[0]-1,self.N[1]-1,self.N[2]-1))
 
+    #solve using policy function iteration.
     def solve_PFI(self):
         c, lam = self.c0, 0*self.c0
         V, i, eps, eps2 = self.V((c,lam)), 0, 1, 1
