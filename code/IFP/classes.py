@@ -597,7 +597,6 @@ class DuraCons(object):
             V1 = self.MPFI(self.polupdate(V),V,M)
             eps = np.sum(np.abs(V1-V)/self.M)
             eps2 = np.max(np.abs(V1-V))
-            print(np.min(V1-V))
             if np.min(V1-V) < -self.mono_tol:
                 print("Failure of monotonicity at:", len(V[V1-V<-self.mono_tol]), "points out of ", self.M)
                 print("Average magnitude of monotonicity failure:", np.mean((V1-V)[V1-V<-self.mono_tol]))
