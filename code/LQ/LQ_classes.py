@@ -6,7 +6,7 @@ LQ_3D: 3D problem; one control; parameters chosen s.t. drift negative
 LQ_3D_SD: 3D problem with state-dependent timestep.
 LQ_3D_GEN: generalized normalized policy function.
 
-All use 'ij' indexing for meshgrid. 
+All use 'ij' indexing for meshgrid.
 """
 
 import numpy as np
@@ -552,7 +552,7 @@ class LQ_3D_GEN(object):
 
     def solve_MPFI(self,M):
         V, i, eps = -self.mat_quad(self.Q/self.rho,self.xx)/2, 1, 1
-        V = self.V(0*self.u)
+        V = self.V(0*self.CF)
         while i < self.maxiter and eps > self.tol:
             V1 = self.Update_MPFI(V,M)
             eps = np.amax(np.abs(V1 - V))

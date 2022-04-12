@@ -2,15 +2,11 @@
 LQ problem with degenerate covariance matrix.
 Accuracy of 3-pt, 5-pt and BOZ approximations.
 Percent errors from various choices of grid sizes and search sizes.
-Perhaps create once more with 'ij' indexing to avoid confusion.
 """
 
 import pandas as pd
 import numpy as np
-import scipy, timeit, time
-import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
-import LQ_classes, LQ_degen_classes
+import time, LQ_classes, LQ_degen_classes
 
 data_3, data_5, data_BOZ = [], [], []
 N_set = [(50,50), (100,100),(150,150),(200,200)]
@@ -57,9 +53,6 @@ for n in N_set:
 3-pt table, 5-pt table and BOZ table
 """
 
-"""
-destin = 'C:/Users/d1tmp02/Documents/WPs/FSMC/main/figures/LQ_degen3_table.tex'
-
 df = pd.DataFrame(data=data_3,index=N_set)
 cols = df.columns.tolist()
 cols = []
@@ -69,10 +62,9 @@ for m in m_set:
 df = df[cols].round(decimals=3)
 df.index.names = ['Grid size']
 
+destin = '../../figures/LQ_degen3_table.tex'
 with open(destin,'w') as tf:
     tf.write(df.to_latex(escape=False,column_format='ccccccc'))
-
-destin = 'C:/Users/d1tmp02/Documents/WPs/FSMC/main/figures/LQ_degen5_table.tex'
 
 df = pd.DataFrame(data=data_5,index=N_set)
 cols = df.columns.tolist()
@@ -83,10 +75,9 @@ for m in m_set:
 df = df[cols].round(decimals=3)
 df.index.names = ['Grid size']
 
+destin = '../../figures/LQ_degen5_table.tex'
 with open(destin,'w') as tf:
     tf.write(df.to_latex(escape=False,column_format='ccccccc'))
-
-destin = 'C:/Users/d1tmp02/Documents/WPs/FSMC/main/figures/LQ_BOZ_table.tex'
 
 df = pd.DataFrame(data=data_BOZ,index=N_set)
 cols = df.columns.tolist()
@@ -97,47 +88,6 @@ for m in m_set:
 df = df[cols].round(decimals=3)
 df.index.names = ['Grid size']
 
+destin = '../../figures/LQ_BOZ_table.tex'
 with open(destin,'w') as tf:
     tf.write(df.to_latex(escape=False,column_format='ccccccc'))
-"""
-
-"""
-Now test speed and the construction times for various subdivisions.
-"""
-
-"""
-N_set = [(150,150)] #(50,50), (100,100), (250,250),(300,300)
-m_set = [6,8] #[2,4]
-for n in N_set:
-    d3, d5, dBOZ = {}, {}, {}
-    for m in m_set:
-        X = LQ_degen_classes.LQ_degen3(Q=Q,sigma=0.3,rho=.15,N=n,pbar=pbar,mbar=m,x_bnd=[[0,1],[0,1]])
-        tic = time.time()
-        BbX = X.Bb()
-        toc = time.time()
-        print("3-pt time to make matrices for grid size", n, "and steps", m, ":", toc-tic)
-        Y = LQ_degen_classes.LQ_degen5(Q=Q,sigma=0.3,rho=.15,N=n,pbar=pbar,mbar=m,x_bnd=[[0,1],[0,1]])
-        tic = time.time()
-        BbY = Y.Bb()
-        toc = time.time()
-        print("5-pt time to make matrices for grid size", n, "and steps", m, ":", toc-tic)
-        Z = LQ_degen_classes.BOZ(Q=Q,sigma=0.3,rho=.15,N=n,pbar=pbar,mbar=m,x_bnd=[[0,1],[0,1]])
-        tic = time.time()
-        BbZ = Z.Bb()
-        toc = time.time()
-        print("BOZ time to make matrices for grid size", n, "and steps", m, ":", toc-tic)
-"""
-
-"""
-plt.spy(BbX[0],markersize=.1)
-plt.show()
-
-plt.spy(BbY[0],markersize=.1)
-plt.show()
-
-plt.spy(BbZ[0],markersize=.1)
-plt.show()
-
-plt.spy(diff,markersize=.1)
-plt.show()
-"""
