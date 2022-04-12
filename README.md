@@ -1,2 +1,2 @@
 # EslamiPhelan_MCA
-Replications materials
+Replication materials for "Applications of Markov Chain Approximation Methods to Optimal Control Problems in Economics".
