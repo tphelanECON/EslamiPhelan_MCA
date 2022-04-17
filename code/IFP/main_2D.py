@@ -63,7 +63,7 @@ for i in range(runs):
 df_ave = df.round(decimals=2)/runs
 df_ave.index.names = ['Grid size']
 
-destin = '../../figures/IFP_2D_table.tex'
+destin = '../figures/IFP_2D_table.tex'
 with open(destin,'w') as tf:
     tf.write(df_ave.to_latex(escape=False,column_format='ccccccc'))
 
@@ -101,11 +101,10 @@ for i in range(runs):
 df_GEN_ave = df_GEN.round(decimals=2)/runs
 df_GEN_ave.index.names = ['Grid size']
 
-"""
-destin = '../../figures/GIFP_2D_table.tex'
+destin = '../figures/GIFP_2D_table.tex'
 with open(destin,'w') as tf:
     tf.write(df_GEN_ave.to_latex(escape=False,column_format='ccccccc'))
-"""
+
 
 print("Max absolute difference across algorithms:", np.max(np.abs(VX_PFI - VY_PFI)))
 print("Max percentage difference across algorithms:", np.max(100*np.abs((VX_PFI - VY_PFI)/VY_PFI)))

@@ -54,8 +54,6 @@ for i in range(runs):
 df_GEN_ave = df_GEN.round(decimals=2)/runs
 df_GEN_ave.index.names = ['Grid size']
 
-"""
-destin = '../../figures/durable_table.tex'
+destin = '../figures/durable_table.tex'
 with open(destin,'w') as tf:
     tf.write(df_GEN_ave.to_latex(escape=False,column_format='ccccccc'))
-"""
