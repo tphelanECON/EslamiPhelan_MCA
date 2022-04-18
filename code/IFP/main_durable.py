@@ -16,8 +16,8 @@ Define number of runs and grid sizes. Want K/N[0] constant N as varies.
 """
 
 runs = 10
-N_set = [(50,10,10), (100,20,10), (150,30,10), (200,40,10)]
-K_set = [2, 4, 6, 8]
+N_set = [(50,10,10), (100,20,10), (150,30,10), (200,40,10), (250,50,10)]
+K_set = [2, 4, 6, 8, 10]
 
 """
 Define relaxation term and set an empty dataframe.
@@ -54,6 +54,6 @@ for i in range(runs):
 df_GEN_ave = df_GEN.round(decimals=2)/runs
 df_GEN_ave.index.names = ['Grid size']
 
-destin = '../figures/durable_table.tex'
+destin = '../../figures/durable_table.tex'
 with open(destin,'w') as tf:
     tf.write(df_GEN_ave.to_latex(escape=False,column_format='ccccccc'))

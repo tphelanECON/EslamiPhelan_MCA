@@ -1,5 +1,6 @@
 """
 Income-fluctuation problem in three dimensions.
+
 """
 
 import numpy as np
@@ -65,9 +66,9 @@ for i in range(runs):
 df_ave = df.round(decimals=2)/runs
 df_ave.index.names = ['Grid size']
 
-destin = '../figures/IFP_3D_table.tex'
+destin = '../../figures/IFP_3D_table.tex'
 with open(destin,'w') as tf:
-    tf.write(df.to_latex(escape=False,column_format='ccccccc'))
+    tf.write(df_ave.to_latex(escape=False,column_format='ccccccc'))
 
 """
 Generalized algorithm. Do not label k=0 'VFI'. No need to redefine
@@ -103,14 +104,12 @@ for i in range(runs):
 df_GEN_ave = df_GEN.round(decimals=2)/runs
 df_GEN_ave.index.names = ['Grid size']
 
-destin = '../figures/GIFP_3D_table.tex'
+destin = '../../figures/GIFP_3D_table.tex'
 with open(destin,'w') as tf:
     tf.write(df_GEN_ave.to_latex(escape=False,column_format='ccccccc'))
 
-
 """
-MPFI and GPFI need not return the same value as Dt = 0 in latter. However,
-reassuringly, they are close.
+MPFI and GPFI need not return the same value. However, reassuringly, they are close.
 """
 
 print("Max absolute difference across algorithms:", np.max(np.abs(VX_PFI - VY_PFI)))
