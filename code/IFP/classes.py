@@ -5,9 +5,8 @@ IFP_2D is 2-dimensional IFP, GIFP_2D is generalized analogue.
 IFP_3D is 3-dimensional IFP, GIFP_3D is generalized analogue.
 DuraCons is durable consumption problem.
 
-All of following use indexing='ij'.
-If xx, yy = np.meshgrid(xgrid, ygrid) then xx is constant as one changes columns
-and varies as one changes rows.
+Following uses indexing='ij'. If xx, yy = np.meshgrid(xgrid, ygrid) then xx is
+constant across columns and varies across rows.
 
 Since numpy reshapes by reading across rows then columns
 (i.e. np.array([[1,2],[3,4]]).reshape(-1) = np.array([1,2,3,4])), row number
@@ -16,9 +15,7 @@ for the (i,j) point, and similarly for higher dimensions.
 """
 
 import numpy as np
-import time
-import scipy
-import scipy.optimize
+import time, scipy, scipy.optimize
 import scipy.sparse as sp
 from scipy.sparse import diags
 from scipy.sparse import linalg
@@ -42,6 +39,7 @@ class IFP_2D(object):
         self.Dt = ((self.kappa-1)*self.c0/self.Delta[0] + (self.sigsig**2 \
         + self.Delta[1]*np.abs(self.theta*self.xx[1]))/self.Delta[1]**2)**(-1)
         self.cmax = self.kappa*self.c0
+        self.V0 = self.V(self.c0)
 
     def p_func(self,ind,c):
         ii,jj = ind
@@ -74,7 +72,7 @@ class IFP_2D(object):
         return sp.linalg.spsolve(B, b.reshape((self.M,))).reshape((self.N[0]-1,self.N[1]-1))
 
     def solve_PFI(self):
-        V, i, eps = self.rho**(-1)*self.c0**(1-self.gamma)/(1-self.gamma), 1, 1
+        V, i, eps = self.V0, 1, 1
         while i < 15 and eps > self.tol:
             tic = time.time()
             V1 = self.V(self.polupdate(V))
@@ -95,8 +93,7 @@ class IFP_2D(object):
         return V.reshape((self.N[0]-1,self.N[1]-1))
 
     def solve_MPFI(self,M):
-        V = self.rho**(-1)*(self.c0)**(1-self.gamma)/(1-self.gamma)
-        i, eps = 1, 1
+        V, i, eps = self.V0, 1, 1
         while i < self.maxiter and eps > self.tol:
             V1 = self.MVFI(self.polupdate(V),V,M)
             eps = np.amax(np.abs(V1-V))
@@ -133,7 +130,7 @@ class IFP_2D(object):
         range(max(-m[1],0), self.N[1] - 1 - max(m[1],0)), indexing='ij')
 
 """
-2D IFP with zero timestep and T = (beta*P-I)/Deltat and Deltat = 0.
+2D IFP with T = limit of (beta*P-I)/Deltat as Deltat rightarrow 0.
 """
 
 class GIFP_2D(object):
@@ -152,6 +149,7 @@ class GIFP_2D(object):
         self.trans_keys = [(1,0),(-1,0),(0,1),(0,-1)]
         self.c0 = self.r*self.xx[0] + np.exp(self.xx[1])
         self.cmax = 2*(self.r*self.bnd[0][1] + np.exp(self.bnd[1][1])+10)
+        self.V0 = self.V(self.c0)
 
     def tran_func(self,ind,c):
         ii,jj = ind
@@ -185,7 +183,7 @@ class GIFP_2D(object):
         return sp.linalg.spsolve(-self.T_tran(c), (b/norm).reshape((self.M,))).reshape((self.N[0]-1,self.N[1]-1))
 
     def solve_PFI(self):
-        V, i, eps = self.r**(-1)*self.c0**(1-self.gamma)/(1-self.gamma), 1, 1
+        V, i, eps = self.V0, 1, 1
         while i < 15 and eps > self.tol:
             V1 = self.V(self.polupdate(V))
             eps = np.amax(np.abs(V1-V))
@@ -211,7 +209,7 @@ class GIFP_2D(object):
         return V.reshape((self.N[0]-1,self.N[1]-1))
 
     def solve_MPFI(self,M):
-        V, i, eps = self.rho**(-1)*self.c0**(1-self.gamma)/(1-self.gamma), 1, 1
+        V, i, eps = self.V0, 1, 1
         while i < self.maxiter and eps > self.tol:
             V1 = self.MVFI(self.polupdate(V),V,M)
             eps = np.amax(np.abs(V1-V))
@@ -248,6 +246,7 @@ class GIFP_2D(object):
 
 """
 Three-dimensional income-fluctuation problem. States: assets, log income 1, and log income 2.
+If we are
 """
 
 class IFP_3D(object):
@@ -270,6 +269,7 @@ class IFP_3D(object):
         + (self.sigsig1**2 + self.Delta[1]*np.abs(self.theta[0]*self.xx[1]))/self.Delta[1]**2 \
         + (self.sigsig2**2 + self.Delta[2]*np.abs(self.theta[1]*self.xx[2]))/self.Delta[2]**2)**(-1)
         self.cmax = self.kappa*self.c0
+        self.V0 = self.V(self.c0)
 
     def p_func(self,ind,c):
         ii,jj,kk = ind
@@ -305,7 +305,7 @@ class IFP_3D(object):
         return sp.linalg.spsolve(B, b.reshape((self.M,))).reshape((self.N[0]-1,self.N[1]-1,self.N[2]-1))
 
     def solve_PFI(self):
-        V, i, eps = self.V(self.c0), 0, 1
+        V, i, eps = self.V0, 0, 1
         while i < 15 and eps > self.tol:
             tic = time.time()
             V1 = self.V(self.polupdate(V))
@@ -331,7 +331,7 @@ class IFP_3D(object):
         return V.reshape((self.N[0]-1,self.N[1]-1,self.N[2]-1))
 
     def solve_MPFI(self,M):
-        V, i, eps = self.V(self.c0), 0, 1
+        V, i, eps = self.V0, 0, 1
         while i < self.maxiter and eps > self.tol:
             V1 = self.MVFI(self.polupdate(V),V,M)
             eps = np.amax(np.abs(V1-V))
@@ -392,6 +392,7 @@ class GIFP_3D(object):
         self.trans_keys = [(1,0,0),(-1,0,0),(0,1,0),(0,-1,0),(0,0,1),(0,0,-1)]
         self.c0 = self.r*self.xx[0] + np.exp(self.xx[1]+self.xx[2])
         self.cmax = 1.5*(self.r*self.bnd[0][1] + np.exp(self.bnd[1][1]+self.bnd[2][1])+1)
+        self.V0 = self.V(self.c0)
 
     def tran_func(self,ind,c):
         ii,jj,kk = ind
@@ -427,7 +428,7 @@ class GIFP_3D(object):
         return sp.linalg.spsolve(-self.T_tran(c), (b/norm).reshape((self.M,))).reshape((self.N[0]-1,self.N[1]-1,self.N[2]-1))
 
     def solve_PFI(self):
-        V, i, eps = self.V(self.c0), 0, 1
+        V, i, eps = self.V0, 0, 1
         while i < 30 and eps > self.tol:
             tic = time.time()
             V1 = self.V(self.polupdate(V))
@@ -461,7 +462,7 @@ class GIFP_3D(object):
         return V.reshape((self.N[0]-1,self.N[1]-1,self.N[2]-1))
 
     def solve_MPFI(self,M):
-        V, i, eps = self.V(self.c0), 0, 1
+        V, i, eps = self.V0, 0, 1
         while i < self.maxiter and eps > self.tol:
             V1 = self.MVFI(self.polupdate(V),V,M)
             eps = np.amax(np.abs(V1-V))
@@ -525,6 +526,7 @@ class DuraCons(object):
         self.c0 = self.r*self.xx[0] + np.exp(self.xx[1])
         self.cmax = 2.5*(self.r*self.bnd[0][1] + np.exp(self.bnd[1][1]))
         self.cmin = 0.5*(self.r*self.bnd[0][0] + np.exp(self.bnd[1][0]))
+        self.V0 = self.V((self.c0,0*self.c0))
 
     def u(self,pol):
         return np.log(pol[0]) + self.eta*np.log(self.xx[2]+self.iota)
@@ -570,8 +572,7 @@ class DuraCons(object):
 
     #solve using policy function iteration.
     def solve_PFI(self):
-        c, lam = self.c0, 0*self.c0
-        V, i, eps, eps2 = self.V((c,lam)), 0, 1, 1
+        V, i, eps, eps2 = self.V0, 0, 1, 1
         while i < 80 and eps2 > self.tol:
             V1 = self.V(self.polupdate(V))
             eps = np.sum(np.abs(V1-V)/self.M)
@@ -580,7 +581,7 @@ class DuraCons(object):
                 print("Failure of monotonicity at:", len(V[V1-V<-self.mono_tol]), "points out of ", self.M)
                 print("Average magnitude of monotonicity failure:", np.mean((V1-V)[V1-V<-self.mono_tol]))
             V, i = V1, i+1
-            print("Differences in PFI iterations (sup norm then L1):", (eps2,eps), "Iterations:", i)
+            print("Differences in PFI iterations:", eps2, "Iterations:", i)
         return V
 
     def MPFI(self,pol,V,M):
@@ -591,8 +592,7 @@ class DuraCons(object):
         return V.reshape((self.N[0]-1,self.N[1]-1,self.N[2]-1))
 
     def solve_MPFI(self,M):
-        c, lam = self.c0, 0*self.c0
-        V, i, eps, eps2 = self.V((c,lam)), 0, 1, 1
+        V, i, eps, eps2 = self.V0, 0, 1, 1
         while i < self.maxiter and eps2 > self.tol:
             V1 = self.MPFI(self.polupdate(V),V,M)
             eps = np.sum(np.abs(V1-V)/self.M)
@@ -601,7 +601,7 @@ class DuraCons(object):
                 print("Failure of monotonicity at:", len(V[V1-V<-self.mono_tol]), "points out of ", self.M)
                 print("Average magnitude of monotonicity failure:", np.mean((V1-V)[V1-V<-self.mono_tol]))
             V, i = V1, i+1
-        print("MPFI with", M, "relaxations,", self.N, "gridpoints:", "Differences:", (eps2,eps), "Iterations:", i)
+        print("MPFI with", M, "relaxations,", self.N, "gridpoints:", "Differences:", (eps2), "Iterations:", i)
         return V
 
     def polupdate(self,V):

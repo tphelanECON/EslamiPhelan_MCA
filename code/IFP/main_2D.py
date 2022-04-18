@@ -21,7 +21,7 @@ bnd, maxiter, tol= [[0,60],[-4*nu,4*nu]], 5000, 10**-6
 Define number of runs and grid sizes
 """
 
-runs = 10
+runs = 1
 N_set = [(200,10), (300,15), (400,20), (500,25)]
 
 """
