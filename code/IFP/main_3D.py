@@ -18,7 +18,7 @@ Achdou choose nu = 0.2 and and hence sigma = np.sqrt(2*theta)*nu = 0.064.
 rho, r, gamma, kappa = 1/0.95-1, 0.03, 2.0, 2.0
 nu = 0.2
 theta, sigma = [-np.log(0.95),-np.log(0.95)], [np.sqrt(-2*np.log(0.95))*nu,np.sqrt(-2*np.log(0.95))*nu]
-bnd, maxiter, tol, mono_tol = [[0,60],[-0.8,0.8],[-0.8,0.8]], 4000, 10**-6, 10**-6
+bnd, maxiter, tol, mono_tol = [[0, 60], [-4*nu, 4*nu], [-4*nu, 4*nu]], 4000, 10**-6, 10**-6
 
 """
 Define number of runs and grid sizes.
@@ -61,7 +61,7 @@ for i in range(runs):
             print("Max absolute difference between PFI and MPFI", k, ":", np.max(np.abs(VX - VX_PFI)))
             print("Max percentage difference with PFI and MPFI", k, ":", np.max(100*np.abs((VX - VX_PFI)/VX_PFI)))
         data.append(d)
-    df = df + pd.DataFrame(data=data,index=N_set)
+    df = df + pd.DataFrame(data=data,index=N_set,columns=cols)
 
 df_ave = df.round(decimals=2)/runs
 df_ave.index.names = ['Grid size']
@@ -99,7 +99,7 @@ for i in range(runs):
             print("Max absolute difference with GPFI:", np.max(np.abs(VY - VY_PFI)))
             print("Max percentage difference with GPFI:", np.max(100*np.abs((VY - VY_PFI)/VY_PFI)))
         data.append(d)
-    df_GEN = df_GEN + pd.DataFrame(data=data,index=N_set)
+    df_GEN = df_GEN + pd.DataFrame(data=data,index=N_set,columns=cols)
 
 df_GEN_ave = df_GEN.round(decimals=2)/runs
 df_GEN_ave.index.names = ['Grid size']
@@ -109,7 +109,8 @@ with open(destin,'w') as tf:
     tf.write(df_GEN_ave.to_latex(escape=False,column_format='ccccccc'))
 
 """
-MPFI and GPFI need not return the same value. However, reassuringly, they are close.
+MPFI and GPFI need not return the same value (they are solving different problems
+as the timesteps are different). However, reassuringly, they are close.
 """
 
 print("Max absolute difference across algorithms:", np.max(np.abs(VX_PFI - VY_PFI)))

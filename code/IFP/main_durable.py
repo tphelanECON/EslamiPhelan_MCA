@@ -52,7 +52,7 @@ for i in range(runs):
             print("Max absolute difference with PFI:", np.mean(np.abs(V_PFI[n] - V_MPFI[n])))
             print("Max percentage difference with PFI:", np.max(100*np.abs((V_PFI[n] - V_MPFI[n])/V_PFI[n])))
         data.append(d)
-    df_GEN = df_GEN + pd.DataFrame(data=data,index=N_set)
+    df_GEN = df_GEN + pd.DataFrame(data=data,index=N_set,columns=cols)
 
 df_GEN_ave = df_GEN.round(decimals=2)/runs
 df_GEN_ave.index.names = ['Grid size']

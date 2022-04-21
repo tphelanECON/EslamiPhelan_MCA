@@ -21,10 +21,8 @@ bnd, maxiter, tol= [[0,60],[-4*nu,4*nu]], 5000, 10**-6
 Define number of runs and grid sizes
 """
 
-runs = 1
-N_set = [(200,10), (300,15), (400,20)]
-
-#, (500,25)
+runs = 10
+N_set = [(200,10), (300,15), (400,20), (500,25)]
 
 """
 Define relaxation term and set an empty dataframe.
@@ -60,7 +58,7 @@ for i in range(runs):
             print("Max absolute difference with PFI:", np.max(np.abs(VX - VX_PFI)))
             print("Max percentage difference with PFI:", np.max(100*np.abs((VX - VX_PFI)/VX_PFI)))
         data.append(d)
-    df = df + pd.DataFrame(data=data,index=N_set)
+    df = df + pd.DataFrame(data=data,index=N_set,columns=cols)
 
 df_ave = df.round(decimals=2)/runs
 df_ave.index.names = ['Grid size']
@@ -98,7 +96,7 @@ for i in range(runs):
             print("Max absolute difference with GPFI:", np.max(np.abs(VY - VY_PFI)))
             print("Max percentage difference with GPFI:", np.max(100*np.abs((VY - VY_PFI)/VY_PFI)))
         data.append(d)
-    df_GEN = df_GEN + pd.DataFrame(data=data,index=N_set)
+    df_GEN = df_GEN + pd.DataFrame(data=data,index=N_set,columns=cols)
 
 df_GEN_ave = df_GEN.round(decimals=2)/runs
 df_GEN_ave.index.names = ['Grid size']
@@ -106,7 +104,6 @@ df_GEN_ave.index.names = ['Grid size']
 destin = '../../figures/GIFP_2D_table.tex'
 with open(destin,'w') as tf:
     tf.write(df_GEN_ave.to_latex(escape=False,column_format='ccccccc'))
-
 
 print("Max absolute difference across algorithms:", np.max(np.abs(VX_PFI - VY_PFI)))
 print("Max percentage difference across algorithms:", np.max(100*np.abs((VX_PFI - VY_PFI)/VY_PFI)))
