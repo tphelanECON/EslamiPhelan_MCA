@@ -8,14 +8,14 @@ import time, LQ_classes
 
 rho, Q, A = 0.1, 1*np.eye(3), 0.01*np.eye(3)
 B, sigma = np.array([.025,.025,.025]).reshape(3,1), 0.4*np.eye(3)
-bnd, maxiter, tol = [[0, 10],[0, 10],[0, 10]], 2000, 10**-6
+bnd, maxiter, tol = [[0, 10], [0, 10], [0, 10]], 2000, 10**-6
 kappa = 3
 
 """
 Define number of runs and grid sizes.
 """
 
-runs = 1
+runs = 10
 N_set = [(10,10,10), (20,20,20), (30,30,30), (40,40,40)]
 
 """
