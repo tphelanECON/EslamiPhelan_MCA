@@ -11,12 +11,7 @@ import scipy.optimize
 import scipy.sparse as sp
 from scipy.sparse import diags
 from scipy.sparse import linalg
-import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
-import itertools
-import timeit
-import time
-import math
+import itertools, timeit, time, math
 
 """
 3-point approximation

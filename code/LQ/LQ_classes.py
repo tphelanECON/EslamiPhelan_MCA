@@ -6,7 +6,7 @@ LQ_3D: 3D problem; one control; parameters chosen s.t. drift negative
 LQ_3D_SD: 3D problem with state-dependent timestep.
 LQ_3D_GEN: generalized normalized policy function.
 
-All use 'ij' indexing for meshgrid.
+All use 'ij' indexing for meshgrid. 
 """
 
 import numpy as np
@@ -16,12 +16,7 @@ import scipy.optimize
 import scipy.sparse as sp
 from scipy.sparse import diags
 from scipy.sparse import linalg
-import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
-import itertools
-import timeit
-import time
-import math
+import itertools, timeit, time, math
 
 class LQ_2D(object):
     def __init__(self,Q,R,A,B,sigma,rho,N,Deltat,x_bnd=[[0,2],[0,2]],tol=10**-6):
@@ -35,6 +30,8 @@ class LQ_2D(object):
         self.trans_keys = [(1,0),(-1,0),(0,1),(0,-1)]
         self.check_drift = self.A - np.mat(B)*np.linalg.inv(self.R)*np.mat(B.T)*np.mat(self.P)
         self.CF = self.CF_fun(self.grid(1))
+        u = (0*self.grid(1)[0],0*self.grid(1)[1])
+        self.V0 = self.V(u)
 
     def CF_fun(self,x):
         return -self.mat_quad(self.P,x)/2 - np.array(self.con)
@@ -102,8 +99,7 @@ class LQ_2D(object):
         return V.reshape((self.N[1]-1,self.N[0]-1))
 
     def solve_PFI(self):
-        u = (0*self.grid(1)[0],0*self.grid(1)[1])
-        V,eps,i = self.V(u),1,1
+        V,eps,i = self.V0,1,1
         while i < 20 and eps > self.tol:
             V1 = self.V(self.polupdate(V))
             eps = np.amax(np.abs(V - V1))
@@ -112,8 +108,7 @@ class LQ_2D(object):
         return V
 
     def solve_MPFI(self,M):
-        u = (0*self.grid(1)[0],0*self.grid(1)[1])
-        V, eps, i = self.V(u), 1, 1
+        V, eps, i = self.V0, 1, 1
         while i < 20 and eps > self.tol:
             V1 = self.V_PFI(V,self.polupdate(V),M)
             eps = np.amax(np.abs(V - V1))
@@ -170,6 +165,7 @@ class LQ_3D(object):
         self.CF = self.CF_fun(self.xx)
         self.trans_keys = [(1,0,0),(-1,0,0),(0,1,0),(0,-1,0),(0,0,1),(0,0,-1)]
         self.drift = self.A - np.mat(self.B)*np.mat(self.B.T)*np.mat(self.P)
+        self.V0 = self.V(0*self.u)
 
     def obj(self,x,u):
         return -self.mat_quad(self.Q,x)/2 - u**2/2
@@ -218,9 +214,8 @@ class LQ_3D(object):
         return np.minimum(u_int,m)
 
     def solve_PFI(self):
-        V, i, eps = -self.mat_quad(self.Q/self.rho,self.xx)/2, 1, 1
-        V = self.V(0*self.u)
-        while i < 10 and eps > self.tol:
+        V, i, eps = self.V0, 1, 1
+        while i < 20 and eps > self.tol:
             V1 = self.V(self.polupdate(V))
             eps = np.amax(np.abs((V1 - V)))
             V, i = V1, i+1
@@ -241,8 +236,7 @@ class LQ_3D(object):
         return self.MPFI(self.polupdate(V),V,M)
 
     def solve_MPFI(self,M):
-        V, i, eps = -self.mat_quad(self.Q/self.rho,self.xx)/2, 1, 1
-        V = self.V(0*self.u)
+        V, i, eps = self.V0, 1, 1
         while i < self.maxiter and eps > self.tol:
             V1 = self.Update_MPFI(V,M)
             eps = np.amax(np.abs(V1 - V))
@@ -315,6 +309,7 @@ class LQ_3D_SD(object):
         self.u = - (u_mat[0,0]*self.xx[0] + u_mat[0,1]*self.xx[1] + u_mat[0,2]*self.xx[2])
         self.kappa = kappa
         self.u_low = self.kappa*self.u
+        self.V0 = self.V(0*self.u)
 
     def obj(self,x,u):
         return -self.mat_quad(self.Q,x)/2 - u**2/2
@@ -364,9 +359,8 @@ class LQ_3D_SD(object):
         return np.maximum(np.minimum(u_int,m),self.u_low)
 
     def solve_PFI(self):
-        V, i, eps = -self.mat_quad(self.Q/self.rho,self.xx)/2, 1, 1
-        V = self.V(0*self.u)
-        while i < 10 and eps > self.tol:
+        V, i, eps = self.V0, 1, 1
+        while i < 20 and eps > self.tol:
             V1 = self.V(self.polupdate(V))
             eps = np.amax(np.abs((V1 - V)))
             if np.min(V1-V) < 0:
@@ -389,8 +383,7 @@ class LQ_3D_SD(object):
         return self.MPFI(self.polupdate(V),V,M)
 
     def solve_MPFI(self,M):
-        V, i, eps = -self.mat_quad(self.Q/self.rho,self.xx)/2, 1, 1
-        V = self.V(0*self.u)
+        V, i, eps = self.V0, 1, 1
         while i < self.maxiter and eps > self.tol:
             V1 = self.Update_MPFI(V,M)
             eps = np.amax(np.abs(V1 - V))
@@ -467,6 +460,7 @@ class LQ_3D_GEN(object):
         self.CF = self.CF_fun(self.xx)
         self.trans_keys = [(1,0,0),(-1,0,0),(0,1,0),(0,-1,0),(0,0,1),(0,0,-1)]
         self.drift = self.A - np.mat(self.B)*np.mat(self.B.T)*np.mat(self.P)
+        self.V0 = self.V(0*self.CF)
 
     def obj(self,x,u):
         return -self.mat_quad(self.Q,x)/2 - u**2/2
@@ -526,9 +520,8 @@ class LQ_3D_GEN(object):
         return np.minimum(u_int,m)
 
     def solve_PFI(self):
-        V, i, eps = -self.mat_quad(self.Q/self.rho,self.xx)/2, 1, 1
-        V = self.V(0*self.CF)
-        while i < 10 and eps > self.tol:
+        V, i, eps = self.V0, 1, 1
+        while i < 20 and eps > self.tol:
             V1 = self.V(self.polupdate(V))
             eps = np.amax(np.abs((V1 - V)))
             V, i = V1, i+1
@@ -551,8 +544,7 @@ class LQ_3D_GEN(object):
         return self.MPFI(self.polupdate(V),V,M)
 
     def solve_MPFI(self,M):
-        V, i, eps = -self.mat_quad(self.Q/self.rho,self.xx)/2, 1, 1
-        V = self.V(0*self.CF)
+        V, i, eps = self.V0, 1, 1
         while i < self.maxiter and eps > self.tol:
             V1 = self.Update_MPFI(V,M)
             eps = np.amax(np.abs(V1 - V))
