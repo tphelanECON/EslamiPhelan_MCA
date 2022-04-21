@@ -61,18 +61,18 @@ for i in range(runs):
         data.append(d)
         data_acc.append(d_acc)
         data_acc2.append(d_acc2)
-    df = df + pd.DataFrame(data=data,index=N_set)
-    df_acc = df_acc + pd.DataFrame(data=data_acc,index=N_set)
-    df_acc2 = df_acc2 + pd.DataFrame(data=data_acc2,index=N_set)
+    df = df + pd.DataFrame(data=data,index=N_set,columns=cols)
+    df_acc = df_acc + pd.DataFrame(data=data_acc,index=N_set,columns=cols)
+    df_acc2 = df_acc2 + pd.DataFrame(data=data_acc2,index=N_set,columns=cols)
 
-df_ave = df.round(decimals=3)/runs
+df_ave = df.round(decimals=2)/runs
 df_ave.index.names = ['Grid size']
 
 destin = '../../figures/LQ_3D_SD_table.tex'
 with open(destin,'w') as tf:
     tf.write(df_ave.to_latex(escape=False,column_format='ccccccc'))
 
-df_acc_ave = df_acc.round(decimals=3)/runs
+df_acc_ave = df_acc.round(decimals=2)/runs
 df_acc_ave.index.names = ['Grid size']
 
 destin = '../../figures/LQ_3D_SDacc_table.tex'
@@ -115,22 +115,22 @@ for i in range(runs):
         data.append(d)
         data_acc.append(d_acc)
         data_acc2.append(d_acc2)
-    df_GEN = df_GEN + pd.DataFrame(data=data,index=N_set)
-    df_GEN_acc = df_GEN_acc + pd.DataFrame(data=data_acc,index=N_set)
-    df_GEN_acc2 = df_GEN_acc2 + pd.DataFrame(data=data_acc2,index=N_set)
+    df_GEN = df_GEN + pd.DataFrame(data=data,index=N_set,columns=cols)
+    df_GEN_acc = df_GEN_acc + pd.DataFrame(data=data_acc,index=N_set,columns=cols)
+    df_GEN_acc2 = df_GEN_acc2 + pd.DataFrame(data=data_acc2,index=N_set,columns=cols)
 
 """
 Record time and accuracy in a table
 """
 
-df_GEN_ave = df_GEN.round(decimals=3)/runs
+df_GEN_ave = df_GEN.round(decimals=2)/runs
 df_GEN_ave.index.names = ['Grid size']
 
 destin = '../../figures/LQ_3D_GEN_table.tex'
 with open(destin,'w') as tf:
     tf.write(df_GEN_ave.to_latex(escape=False,column_format='ccccccc'))
 
-df_GEN_acc_ave = df_GEN_acc.round(decimals=3)/runs
+df_GEN_acc_ave = df_GEN_acc.round(decimals=2)/runs
 df_GEN_acc_ave.index.names = ['Grid size']
 
 destin = '../../figures/LQ_3D_GENacc_table.tex'
