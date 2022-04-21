@@ -1,5 +1,5 @@
 """
-Durable consumption problem in three dimensions.
+Durable consumption problem in three dimensions. ipython
 """
 
 import numpy as np
@@ -7,9 +7,10 @@ import pandas as pd
 import time, classes
 
 rho, r, eta, iota = -np.log(0.93), 0.06, 1/0.77-1, 0.01
-theta, sigma = -np.log(0.95), np.sqrt(-2*np.log(0.95))*0.2
+nu = 0.2
+theta, sigma = -np.log(0.95), np.sqrt(-2*np.log(0.95))*nu
 pbar, lambar = 1, 52
-bnd, maxiter, tol, mono_tol = [[0,100],[-0.8,0.8],[0,12]], 5000, 10**-6, 10**-6
+bnd, maxiter, tol, mono_tol = [[0,100],[-4*nu,4*nu],[0,12]], 5000, 10**-6, 10**-6
 
 """
 Define number of runs and grid sizes. Want K/N[0] constant N as varies.
@@ -17,7 +18,9 @@ Define number of runs and grid sizes. Want K/N[0] constant N as varies.
 
 runs = 10
 N_set = [(50,10,10), (100,20,10), (150,30,10), (200,40,10), (250,50,10)]
+#N_set = [(50,10,10), (100,20,10), (150,30,10)]
 K_set = [2, 4, 6, 8, 10]
+#K_set = [2, 4, 6]
 
 """
 Define relaxation term and set an empty dataframe.

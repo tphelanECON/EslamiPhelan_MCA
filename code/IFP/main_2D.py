@@ -22,7 +22,9 @@ Define number of runs and grid sizes
 """
 
 runs = 1
-N_set = [(200,10), (300,15), (400,20), (500,25)]
+N_set = [(200,10), (300,15), (400,20)]
+
+#, (500,25)
 
 """
 Define relaxation term and set an empty dataframe.
