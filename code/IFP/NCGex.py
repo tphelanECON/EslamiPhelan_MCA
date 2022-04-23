@@ -1,22 +1,19 @@
 """
 Growth model with non-concave technology.
-
-Careful with making dt too small, as overflow issues may arise.
-ipython
 """
 
 import numpy as np
 import scipy as sp
-import math
-import time
+import math, time
 import matplotlib.pyplot as plt
 import scipy.sparse as sp
 import scipy.optimize as scopt
 from scipy.sparse import linalg
 
 """
-Non-concave growth problem. The slope and sigma parameters create function that
-vanishes near endpoints of grid. WP used self.sigma = self.sigbar*(self.bnd[1]>self.kgrid)*(self.bnd[0]<self.kgrid)
+Non-concave growth problem. The slope and sigma parameters create a function
+for volatility that vanishes near the endpoints of the grid.
+WP was slightly different and used self.sigma = self.sigbar*(self.bnd[1]>self.kgrid)*(self.bnd[0]<self.kgrid)
 """
 
 class NCG(object):
@@ -171,7 +168,7 @@ tic = time.time()
 VX0 = X.Vupdate(X.f(X.kgrid)-X.delta*X.kgrid)
 VX = X.solveV(VX0)
 toc = time.time()
-print(toc-tic)
+print("Time taken", toc-tic)
 
 tic = time.time()
 VT0 = T.Vupdate(T.f(T.kgrid)-T.delta*T.kgrid)
