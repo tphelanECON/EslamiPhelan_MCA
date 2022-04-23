@@ -4,8 +4,7 @@ Create plots for the durable good example used in the paper
 
 import numpy as np
 import pandas as pd
-import time
-import scipy
+import time, scipy
 import scipy.optimize
 import scipy.sparse as sp
 from scipy.sparse import diags
