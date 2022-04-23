@@ -53,12 +53,11 @@ for n in N_set:
 3-pt table, 5-pt table and BOZ table
 """
 
-df = pd.DataFrame(data=data_3,index=N_set,columns=cols)
-cols = df.columns.tolist()
 cols = []
 for m in m_set:
     cols.append(r'$\overline{m}$ = ' + '{0}'.format(m))
 
+df = pd.DataFrame(data=data_3,index=N_set,columns=cols)
 df = df[cols].round(decimals=2)
 df.index.names = ['Grid size']
 
@@ -67,11 +66,6 @@ with open(destin,'w') as tf:
     tf.write(df.to_latex(escape=False,column_format='ccccccc'))
 
 df = pd.DataFrame(data=data_5,index=N_set,columns=cols)
-cols = df.columns.tolist()
-cols = []
-for m in m_set:
-    cols.append(r'$\overline{m}$ = ' + '{0}'.format(m))
-
 df = df[cols].round(decimals=2)
 df.index.names = ['Grid size']
 
@@ -80,11 +74,6 @@ with open(destin,'w') as tf:
     tf.write(df.to_latex(escape=False,column_format='ccccccc'))
 
 df = pd.DataFrame(data=data_BOZ,index=N_set,columns=cols)
-cols = df.columns.tolist()
-cols = []
-for m in m_set:
-    cols.append(r'$\overline{m}$ = ' + '{0}'.format(m))
-
 df = df[cols].round(decimals=3)
 df.index.names = ['Grid size']
 

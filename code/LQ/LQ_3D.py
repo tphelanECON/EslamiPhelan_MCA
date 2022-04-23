@@ -77,7 +77,7 @@ df_acc_ave.index.names = ['Grid size']
 
 destin = '../../figures/LQ_3D_SDacc_table.tex'
 with open(destin,'w') as tf:
-    tf.write(df.to_latex(escape=False,column_format='ccccccc'))
+    tf.write(df_acc_ave.to_latex(escape=False,column_format='ccccccc'))
 
 """
 Now generalized case
