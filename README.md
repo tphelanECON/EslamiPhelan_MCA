@@ -1,4 +1,4 @@
 # EslamiPhelan_MCA
-Replication materials for "Applications of Markov Chain Approximation Methods to Optimal Control Problems in Economics".
+Replication materials for the paper:
 
-Authors: Keyvan Eslami and Thomas Phelan. 
+Phelan, Thomas, and Keyvan Eslami. "Applications of markov chain approximation methods to optimal control problems in economics." Journal of Economic Dynamics and Control (2022): 104437.
