@@ -1,4 +1,8 @@
 """
+Original version: March 2022.
+
+This version: March 2023.
+
 Five classes: IFP_2D, GIFP_2D, IFP_3D, GIFP_3D, DuraCons.
 
 IFP_2D is 2-dimensional IFP, GIFP_2D is generalized analogue.
@@ -33,7 +37,8 @@ class IFP_2D(object):
         self.bnd, self.Delta = bnd, [(bnd[i][1]-bnd[i][0])/self.N[i] for i in range(2)]
         self.grid = [np.linspace(self.bnd[i][0]+self.Delta[i],self.bnd[i][1]-self.Delta[i],self.N[i]-1) for i in range(2)]
         self.xx = np.meshgrid(self.grid[0],self.grid[1],indexing='ij')
-        self.sigsig = self.sigma*(self.xx[1] > self.bnd[1][0]+self.Delta[1])*(self.xx[1] < self.bnd[1][0]+(self.N[1]-1)*self.Delta[1])
+        self.ii, self.jj= self.mesh([0,0])
+        self.sigsig = self.sigma*(self.jj > 0)*(self.jj < self.N[1] - 2) #vanish on boundaries
         self.trans_keys = [(1,0),(-1,0),(0,1),(0,-1)]
         self.c0 = self.r*self.xx[0] + np.exp(self.xx[1])
         self.Dt = ((self.kappa-1)*self.c0/self.Delta[0] + (self.sigsig**2 \
@@ -145,7 +150,7 @@ class GIFP_2D(object):
         self.grid = [np.linspace(self.bnd[i][0]+self.Delta[i],self.bnd[i][1]-self.Delta[i],self.N[i]-1) for i in range(2)]
         self.ii, self.jj= self.mesh([0,0])
         self.xx = np.meshgrid(self.grid[0],self.grid[1],indexing='ij')
-        self.sigsig = self.sigma*(self.xx[1] > self.bnd[1][0]+self.Delta[1])*(self.xx[1] < self.bnd[1][0]+(self.N[1]-1)*self.Delta[1])
+        self.sigsig = self.sigma*(self.jj > 0)*(self.jj < self.N[1] - 2) #vanish on boundaries
         self.trans_keys = [(1,0),(-1,0),(0,1),(0,-1)]
         self.c0 = self.r*self.xx[0] + np.exp(self.xx[1])
         self.cmax = 2*(self.r*self.bnd[0][1] + np.exp(self.bnd[1][1])+10)
@@ -245,8 +250,7 @@ class GIFP_2D(object):
         range(max(-m[1],0), self.N[1] - 1 - max(m[1],0)), indexing='ij')
 
 """
-Three-dimensional income-fluctuation problem. States: assets, log income 1, and log income 2.
-If we are
+Three-dimensional income-fluctuation problem. States: assets, log income 1, and log income 2
 """
 
 class IFP_3D(object):
@@ -261,8 +265,9 @@ class IFP_3D(object):
         self.bnd, self.Delta = bnd, [(bnd[i][1]-bnd[i][0])/self.N[i] for i in range(3)]
         self.grid = [np.linspace(self.bnd[i][0]+self.Delta[i],self.bnd[i][1]-self.Delta[i],self.N[i]-1) for i in range(3)]
         self.xx = np.meshgrid(self.grid[0],self.grid[1],self.grid[2],indexing='ij')
-        self.sigsig1 = self.sigma[0]*(self.xx[1] > self.bnd[1][0]+self.Delta[1])*(self.xx[1] < self.bnd[1][0]+(self.N[1]-1)*self.Delta[1])
-        self.sigsig2 = self.sigma[1]*(self.xx[2] > self.bnd[2][0]+self.Delta[2])*(self.xx[2] < self.bnd[2][0]+(self.N[2]-1)*self.Delta[2])
+        self.ii, self.jj, self.kk = self.mesh([0,0,0])
+        self.sigsig1 = self.sigma[0]*(self.jj > 0)*(self.jj < self.N[1] - 2)
+        self.sigsig2 = self.sigma[1]*(self.kk > 0)*(self.kk < self.N[2] - 2)
         self.trans_keys = [(1,0,0),(-1,0,0),(0,1,0),(0,-1,0),(0,0,1),(0,0,-1)]
         self.c0 = self.r*self.xx[0] + np.exp(self.xx[1]+self.xx[2])
         self.Dt = ((self.kappa-1)*self.c0/self.Delta[0] \
@@ -386,9 +391,9 @@ class GIFP_3D(object):
         self.bnd, self.Delta = bnd, [(bnd[i][1]-bnd[i][0])/self.N[i] for i in range(3)]
         self.grid = [np.linspace(self.bnd[i][0]+self.Delta[i],self.bnd[i][1]-self.Delta[i],self.N[i]-1) for i in range(3)]
         self.ii, self.jj, self.kk = self.mesh([0,0,0])
+        self.sigsig1 = self.sigma[0]*(self.jj > 0)*(self.jj < self.N[1] - 2)
+        self.sigsig2 = self.sigma[1]*(self.kk > 0)*(self.kk < self.N[2] - 2)
         self.xx = np.meshgrid(self.grid[0],self.grid[1],self.grid[2],indexing='ij')
-        self.sigsig1 = self.sigma[0]*(self.xx[1] > self.bnd[1][0]+self.Delta[1])*(self.xx[1] < self.bnd[1][0]+(self.N[1]-1)*self.Delta[1])
-        self.sigsig2 = self.sigma[1]*(self.xx[2] > self.bnd[2][0]+self.Delta[2])*(self.xx[2] < self.bnd[2][0]+(self.N[2]-1)*self.Delta[2])
         self.trans_keys = [(1,0,0),(-1,0,0),(0,1,0),(0,-1,0),(0,0,1),(0,0,-1)]
         self.c0 = self.r*self.xx[0] + np.exp(self.xx[1]+self.xx[2])
         self.cmax = 1.5*(self.r*self.bnd[0][1] + np.exp(self.bnd[1][1]+self.bnd[2][1])+1)
@@ -521,7 +526,7 @@ class DuraCons(object):
         self.grid = [np.linspace(self.bnd[i][0]+self.Delta[i],self.bnd[i][0]+(self.N[i]-1)*self.Delta[i],self.N[i]-1) for i in range(3)]
         self.ii, self.jj, self.kk = self.mesh([0,0,0])
         self.xx = np.meshgrid(self.grid[0],self.grid[1],self.grid[2],indexing='ij')
-        self.sigsig = self.sigma*(self.xx[1] > self.bnd[1][0]+self.Delta[1])*(self.xx[1] < self.bnd[1][0]+(self.N[1]-1)*self.Delta[1])
+        self.sigsig = self.sigma*(self.jj > 0)*(self.jj < self.N[1] - 2)
         self.trans_keys = [(1,0,0),(-1,0,0),(0,1,0),(0,-1,0),(-self.K,0,1)]
         self.c0 = self.r*self.xx[0] + np.exp(self.xx[1])
         self.cmax = 2.5*(self.r*self.bnd[0][1] + np.exp(self.bnd[1][1]))
