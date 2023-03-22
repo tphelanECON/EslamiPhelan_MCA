@@ -18,7 +18,7 @@ Achdou choose nu = 0.2 and and hence sigma = np.sqrt(2*theta)*nu = 0.064.
 rho, r, gamma, kappa = 1/0.95-1, 0.03, 2.0, 2.0
 nu = 0.2
 theta, sigma = [-np.log(0.95),-np.log(0.95)], [np.sqrt(-2*np.log(0.95))*nu,np.sqrt(-2*np.log(0.95))*nu]
-bnd, maxiter, tol, mono_tol = [[0, 60], [-4*nu, 4*nu], [-4*nu, 4*nu]], 4000, 10**-6, 10**-6
+bnd, maxiter, tol, mono_tol = [[0, 170], [-4*nu, 4*nu], [-4*nu, 4*nu]], 4000, 10**-6, 10**-6
 
 """
 Define number of runs and grid sizes.
