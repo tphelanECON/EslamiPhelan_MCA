@@ -172,7 +172,7 @@ print("Time taken", toc-tic)
 
 tic = time.time()
 VT0 = T.Vupdate(T.f(T.kgrid)-T.delta*T.kgrid)
-VT = T.solveV(VX)
+VT = T.solveV(VT0)
 toc = time.time()
 print(toc-tic)
 
